@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Calculator</title>
+    <base target="_self">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@preline/preline@2.0.0/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'press': 'press 0.2s ease-out',
+                        'appear': 'appear 0.3s ease-out',
+                    },
+                    keyframes: {
+                        press: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(0.95)' },
+                        },
+                        appear: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .calculator-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .btn-press:active {
+            animation: press 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
+    <div class="w-full max-w-xs mx-auto">
+        <div class="calculator-shadow bg-white dark:bg-gray-800 rounded-2xl overflow-hidden transition-all duration-300 animate-appear">
+            <!-- Display -->
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 text-right">
+                <div id="previous-operand" class="text-gray-500 dark:text-gray-400 text-sm h-5 overflow-hidden"></div>
+                <div id="current-operand" class="text-3xl font-semibold dark:text-white truncate">0</div>
+            </div>
+            
+            <!-- Keypad -->
+            <div class="grid grid-cols-4 gap-1 p-2 bg-gray-100 dark:bg-gray-700">
+                <!-- Row 1 -->
+                <button data-action="clear" class="btn-press col-span-2 bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    AC
+                </button>
+                <button data-action="delete" class="btn-press bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    <i class="fas fa-delete-left"></i>
+                </button>
+                <button data-operation="/" class="btn-press bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    ÷
+                </button>
+                
+                <!-- Row 2 -->
+                <button data-number="7" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    7
+                </button>
+                <button data-number="8" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    8
+                </button>
+                <button data-number="9" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    9
+                </button>
+                <button data-operation="*" class="btn-press bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    ×
+                </button>
+                
+                <!-- Row 3 -->
+                <button data-number="4" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    4
+                </button>
+                <button data-number="5" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    5
+                </button>
+                <button data-number="6" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    6
+                </button>
+                <button data-operation="-" class="btn-press bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    -
+                </button>
+                
+                <!-- Row 4 -->
+                <button data-number="1" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    1
+                </button>
+                <button data-number="2" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    2
+                </button>
+                <button data-number="3" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    3
+                </button>
+                <button data-operation="+" class="btn-press bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    +
+                </button>
+                
+                <!-- Row 5 -->
+                <button data-number="0" class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200 col-span-2">
+                    0
+                </button>
+                <button data-number="." class="btn-press bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    .
+                </button>
+                <button data-action="equals" class="btn-press bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 rounded-lg transition-all duration-200">
+                    =
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Calculator logic
+            class Calculator {
+                constructor(previousOperandElement, currentOperandElement) {
+                    this.previousOperandElement = previousOperandElement;
+                    this.currentOperandElement = currentOperandElement;
+                    this.clear();
+                }
+
+                clear() {
+                    this.currentOperand = '0';
+                    this.previousOperand = '';
+                    this.operation = undefined;
+                }
+
+                delete() {
+                    this.currentOperand = this.currentOperand.toString().slice(0, -1);
+                    if (this.currentOperand === '') {
+                        this.currentOperand = '0';
+                    }
+                }
+
+                appendNumber(number) {
+                    if (number === '.' && this.currentOperand.includes('.')) return;
+                    if (this.currentOperand === '0' && number !== '.') {
+                        this.currentOperand = number;
+                    } else {
+                        this.currentOperand = this.currentOperand.toString() + number.toString();
+                    }
+                }
+
+                chooseOperation(operation) {
+                    if (this.currentOperand === '') return;
+                    if (this.previousOperand !== '') {
+                        this.compute();
+                    }
+                    this.operation = operation;
+                    this.previousOperand = this.currentOperand;
+                    this.currentOperand = '';
+                }
+
+                compute() {
+                    let computation;
+                    const prev = parseFloat(this.previousOperand);
+                    const current = parseFloat(this.currentOperand);
+                    if (isNaN(prev) || isNaN(current)) return;
+
+                    switch (this.operation) {
+                        case '+':
+                            computation = prev + current;
+                            break;
+                        case '-':
+                            computation = prev - current;
+                            break;
+                        case '*':
+                            computation = prev * current;
+                            break;
+                        case '/':
+                            computation = prev / current;
+                            break;
+                        default:
+                            return;
+                    }
+
+                    this.currentOperand = computation.toString();
+                    this.operation = undefined;
+                    this.previousOperand = '';
+                }
+
+                updateDisplay() {
+                    this.currentOperandElement.innerText = this.currentOperand;
+                    if (this.operation != null) {
+                        this.previousOperandElement.innerText = 
+                            `${this.previousOperand} ${this.operation}`;
+                    } else {
+                        this.previousOperandElement.innerText = '';
+                    }
+                }
+            }
+
+            // Initialize calculator
+            const calculator = new Calculator(
+                document.getElementById('previous-operand'),
+                document.getElementById('current-operand')
+            );
+
+            // Button event listeners
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Add press animation
+                    button.classList.add('animate-press');
+                    setTimeout(() => {
+                        button.classList.remove('animate-press');
+                    }, 200);
+
+                    if (button.dataset.number) {
+                        calculator.appendNumber(button.dataset.number);
+                    } else if (button.dataset.operation) {
+                        calculator.chooseOperation(button.dataset.operation);
+                    } else if (button.dataset.action === 'equals') {
+                        calculator.compute();
+                    } else if (button.dataset.action === 'clear') {
+                        calculator.clear();
+                    } else if (button.dataset.action === 'delete') {
+                        calculator.delete();
+                    }
+                    
+                    calculator.updateDisplay();
+                });
+            });
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+                    const button = document.querySelector(`button[data-number="${e.key}"]`);
+                    if (button) button.click();
+                } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                    const button = document.querySelector(`button[data-operation="${e.key}"]`);
+                    if (button) button.click();
+                } else if (e.key === 'Enter' || e.key === '=') {
+                    const button = document.querySelector(`button[data-action="equals"]`);
+                    if (button) button.click();
+                } else if (e.key === 'Escape') {
+                    const button = document.querySelector(`button[data-action="clear"]`);
+                    if (button) button.click();
+                } else if (e.key === 'Backspace') {
+                    const button = document.querySelector(`button[data-action="delete"]`);
+                    if (button) button.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
