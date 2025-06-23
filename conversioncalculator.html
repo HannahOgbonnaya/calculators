@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Conversion Calculator</title>
+    <base target="_self">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@preline/preline@2.0.0/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .select-transition {
+            transition: all 0.3s ease;
+        }
+        .select-transition:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-transition {
+            transition: all 0.2s ease;
+        }
+        .btn-transition:hover {
+            transform: translateY(-1px);
+        }
+        .btn-transition:active {
+            transform: translateY(1px);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .flip-horizontal {
+            transform: scaleX(-1);
+        }
+        .rotate-45 {
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <header class="text-center mb-10 animate-slide-up">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">Universal Converter</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">Convert between different units of measurement with real-time currency exchange rates</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Calculator Card -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden card-hover animate-fade-in">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-semibold">Conversion Calculator</h2>
+                        <div class="relative">
+                            <select id="conversionType" class="select-transition bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                <option value="length">Length</option>
+                                <option value="weight">Weight</option>
+                                <option value="temperature">Temperature</option>
+                                <option value="area">Area</option>
+                                <option value="volume">Volume</option>
+                                <option value="time">Time</option>
+                                <option value="currency">Currency</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conversion Inputs -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="space-y-2">
+                            <label for="fromValue" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
+                            <input type="number" id="fromValue" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700" placeholder="Enter value" value="1">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="fromUnit" class="block text-sm font-medium text-gray-700 dark:text-gray-300">From Unit</label>
+                            <select id="fromUnit" class="select-transition w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                <!-- Units will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="flex justify-center my-4">
+                        <button id="swapUnits" class="btn-transition bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-exchange-alt rotate-45 text-lg"></i>
+                        </button>
+                    </div>
+
+                    <!-- Conversion Outputs -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label for="toValue" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Result</label>
+                            <input type="number" id="toValue" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700" readonly>
+                        </div>
+                        <div class="space-y-2">
+                            <label for="toUnit" class="block text-sm font-medium text-gray-700 dark:text-gray-300">To Unit</label>
+                            <select id="toUnit" class="select-transition w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
+                                <!-- Units will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Currency Last Updated -->
+                    <div id="currencyUpdateInfo" class="mt-4 text-sm text-gray-500 dark:text-gray-400 hidden">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span>Exchange rates last updated: </span>
+                        <span id="lastUpdated"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion History Card -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden card-hover animate-fade-in">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">Recent Conversions</h2>
+                        <button id="clearHistory" class="btn-transition text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 focus:outline-none">
+                            <i class="fas fa-trash-alt mr-1"></i> Clear
+                        </button>
+                    </div>
+                    <div id="historyList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <!-- History items will be added here -->
+                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                            <i class="fas fa-history text-2xl mb-2"></i>
+                            <p>Your conversions will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Conversions -->
+        <div class="mt-10 animate-slide-up">
+            <h2 class="text-2xl font-semibold mb-6">Popular Conversions</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Popular conversions will be added here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Conversion data
+        const conversionData = {
+            length: {
+                units: ['Meter', 'Kilometer', 'Centimeter', 'Millimeter', 'Mile', 'Yard', 'Foot', 'Inch'],
+                conversions: {
+                    Meter: 1,
+                    Kilometer: 1000,
+                    Centimeter: 0.01,
+                    Millimeter: 0.001,
+                    Mile: 1609.34,
+                    Yard: 0.9144,
+                    Foot: 0.3048,
+                    Inch: 0.0254
+                },
+                icon: 'fas fa-ruler-combined'
+            },
+            weight: {
+                units: ['Kilogram', 'Gram', 'Milligram', 'Metric Ton', 'Pound', 'Ounce', 'Stone'],
+                conversions: {
+                    Kilogram: 1,
+                    Gram: 0.001,
+                    Milligram: 0.000001,
+                    'Metric Ton': 1000,
+                    Pound: 0.453592,
+                    Ounce: 0.0283495,
+                    Stone: 6.35029
+                },
+                icon: 'fas fa-weight-hanging'
+            },
+            temperature: {
+                units: ['Celsius', 'Fahrenheit', 'Kelvin'],
+                conversions: {},
+                icon: 'fas fa-temperature-high'
+            },
+            area: {
+                units: ['Square Meter', 'Square Kilometer', 'Square Mile', 'Square Yard', 'Square Foot', 'Square Inch', 'Hectare', 'Acre'],
+                conversions: {
+                    'Square Meter': 1,
+                    'Square Kilometer': 1000000,
+                    'Square Mile': 2589988.11,
+                    'Square Yard': 0.836127,
+                    'Square Foot': 0.092903,
+                    'Square Inch': 0.00064516,
+                    'Hectare': 10000,
+                    'Acre': 4046.86
+                },
+                icon: 'fas fa-border-style'
+            },
+            volume: {
+                units: ['Liter', 'Milliliter', 'Cubic Meter', 'Cubic Centimeter', 'Cubic Foot', 'Cubic Inch', 'Gallon', 'Quart', 'Pint', 'Cup', 'Fluid Ounce'],
+                conversions: {
+                    Liter: 1,
+                    Milliliter: 0.001,
+                    'Cubic Meter': 1000,
+                    'Cubic Centimeter': 0.001,
+                    'Cubic Foot': 28.3168,
+                    'Cubic Inch': 0.0163871,
+                    Gallon: 3.78541,
+                    Quart: 0.946353,
+                    Pint: 0.473176,
+                    Cup: 0.24,
+                    'Fluid Ounce': 0.0295735
+                },
+                icon: 'fas fa-glass-water'
+            },
+            time: {
+                units: ['Second', 'Millisecond', 'Minute', 'Hour', 'Day', 'Week', 'Month', 'Year'],
+                conversions: {
+                    Second: 1,
+                    Millisecond: 0.001,
+                    Minute: 60,
+                    Hour: 3600,
+                    Day: 86400,
+                    Week: 604800,
+                    Month: 2628000, // Approximate
+                    Year: 31536000 // Approximate
+                },
+                icon: 'fas fa-clock'
+            },
+            currency: {
+                units: ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'MXN', 'BRL', 'RUB', 'KRW', 'SGD', 'NZD', 'NGN'],
+                conversions: {},
+                icon: 'fas fa-money-bill-wave'
+            }
+        };
+
+        // Popular conversions
+        const popularConversions = [
+            { type: 'length', from: 'Mile', to: 'Kilometer' },
+            { type: 'weight', from: 'Pound', to: 'Kilogram' },
+            { type: 'temperature', from: 'Fahrenheit', to: 'Celsius' },
+            { type: 'area', from: 'Square Foot', to: 'Square Meter' },
+            { type: 'volume', from: 'Gallon', to: 'Liter' },
+            { type: 'time', from: 'Hour', to: 'Minute' },
+            { type: 'currency', from: 'USD', to: 'EUR' },
+            { type: 'length', from: 'Inch', to: 'Centimeter' },
+            { type: 'weight', from: 'Ounce', to: 'Gram' },
+            { type: 'temperature', from: 'Celsius', to: 'Kelvin' },
+            { type: 'currency', from: 'USD', to: 'JPY' },
+            { type: 'time', from: 'Day', to: 'Hour' }
+        ];
+
+        // DOM elements
+        const conversionTypeSelect = document.getElementById('conversionType');
+        const fromUnitSelect = document.getElementById('fromUnit');
+        const toUnitSelect = document.getElementById('toUnit');
+        const fromValueInput = document.getElementById('fromValue');
+        const toValueInput = document.getElementById('toValue');
+        const swapUnitsBtn = document.getElementById('swapUnits');
+        const historyList = document.getElementById('historyList');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+        const currencyUpdateInfo = document.getElementById('currencyUpdateInfo');
+        const lastUpdatedSpan = document.getElementById('lastUpdated');
+        const popularConversionsContainer = document.querySelector('.grid-cols-6');
+
+        // State
+        let conversionHistory = JSON.parse(localStorage.getItem('conversionHistory')) || [];
+        let currencyRates = {};
+        let lastCurrencyUpdate = localStorage.getItem('lastCurrencyUpdate') || '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            populateUnitSelects();
+            setupEventListeners();
+            loadPopularConversions();
+            updateHistoryDisplay();
+            
+            // Load currency rates if currency is selected
+            if (conversionTypeSelect.value === 'currency') {
+                fetchCurrencyRates();
+            }
+        });
+
+        // Populate unit selects based on conversion type
+        function populateUnitSelects() {
+            const type = conversionTypeSelect.value;
+            const units = conversionData[type].units;
+            
+            // Clear existing options
+            fromUnitSelect.innerHTML = '';
+            toUnitSelect.innerHTML = '';
+            
+            // Add new options
+            units.forEach(unit => {
+                const fromOption = document.createElement('option');
+                fromOption.value = unit;
+                fromOption.textContent = unit;
+                fromUnitSelect.appendChild(fromOption);
+                
+                const toOption = document.createElement('option');
+                toOption.value = unit;
+                toOption.textContent = unit;
+                toUnitSelect.appendChild(toOption);
+            });
+            
+            // Set default "to" unit to something different than "from"
+            if (units.length > 1) {
+                toUnitSelect.selectedIndex = 1;
+            }
+            
+            // Perform initial conversion
+            convert();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            conversionTypeSelect.addEventListener('change', () => {
+                populateUnitSelects();
+                
+                // Show/hide currency update info
+                if (conversionTypeSelect.value === 'currency') {
+                    currencyUpdateInfo.classList.remove('hidden');
+                    fetchCurrencyRates();
+                } else {
+                    currencyUpdateInfo.classList.add('hidden');
+                }
+            });
+            
+            fromUnitSelect.addEventListener('change', convert);
+            toUnitSelect.addEventListener('change', convert);
+            fromValueInput.addEventListener('input', convert);
+            
+            swapUnitsBtn.addEventListener('click', () => {
+                const tempUnit = fromUnitSelect.value;
+                fromUnitSelect.value = toUnitSelect.value;
+                toUnitSelect.value = tempUnit;
+                convert();
+                
+                // Add animation effect
+                swapUnitsBtn.classList.add('animate-pulse-slow');
+                setTimeout(() => {
+                    swapUnitsBtn.classList.remove('animate-pulse-slow');
+                }, 300);
+            });
+            
+            clearHistoryBtn.addEventListener('click', () => {
+                conversionHistory = [];
+                localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+                updateHistoryDisplay();
+            });
+        }
+
+        // Perform conversion
+        function convert() {
+            const type = conversionTypeSelect.value;
+            const fromUnit = fromUnitSelect.value;
+            const toUnit = toUnitSelect.value;
+            const fromValue = parseFloat(fromValueInput.value) || 0;
+            
+            let result;
+            
+            if (type === 'temperature') {
+                result = convertTemperature(fromValue, fromUnit, toUnit);
+            } else if (type === 'currency') {
+                result = convertCurrency(fromValue, fromUnit, toUnit);
+            } else {
+                result = convertStandard(fromValue, fromUnit, toUnit, type);
+            }
+            
+            toValueInput.value = result.toFixed(6).replace(/\.?0+$/, '');
+            
+            // Add to history
+            if (fromValue !== 0) {
+                addToHistory(type, fromValue, fromUnit, result, toUnit);
+            }
+        }
+
+        // Standard conversion (length, weight, etc.)
+        function convertStandard(value, fromUnit, toUnit, type) {
+            const conversions = conversionData[type].conversions;
+            const baseValue = value * conversions[fromUnit];
+            return baseValue / conversions[toUnit];
+        }
+
+        // Temperature conversion
+        function convertTemperature(value, fromUnit, toUnit) {
+            if (fromUnit === toUnit) return value;
+            
+            // Convert to Celsius first
+            let celsius;
+            if (fromUnit === 'Celsius') {
+                celsius = value;
+            } else if (fromUnit === 'Fahrenheit') {
+                celsius = (value - 32) * 5/9;
+            } else if (fromUnit === 'Kelvin') {
+                celsius = value - 273.15;
+            }
+            
+            // Convert from Celsius to target unit
+            if (toUnit === 'Celsius') {
+                return celsius;
+            } else if (toUnit === 'Fahrenheit') {
+                return (celsius * 9/5) + 32;
+            } else if (toUnit === 'Kelvin') {
+                return celsius + 273.15;
+            }
+        }
+
+        // Currency conversion
+        function convertCurrency(value, fromUnit, toUnit) {
+            if (fromUnit === toUnit) return value;
+            
+            // If we have rates, use them
+            if (currencyRates[fromUnit] && currencyRates[toUnit]) {
+                return value * (currencyRates[toUnit] / currencyRates[fromUnit]);
+            }
+            
+            // Fallback to 1:1 if no rates available
+            return value;
+        }
+
+        // Fetch currency exchange rates
+        async function fetchCurrencyRates() {
+            try {
+                // Check if we have recent rates in localStorage
+                const storedRates = localStorage.getItem('currencyRates');
+                const storedTime = localStorage.getItem('lastCurrencyUpdate');
+                const now = new Date().getTime();
+                
+                if (storedRates && storedTime && (now - parseInt(storedTime)) < 3600000) {
+                    // Use cached rates if less than 1 hour old
+                    currencyRates = JSON.parse(storedRates);
+                    lastUpdatedSpan.textContent = new Date(parseInt(storedTime)).toLocaleString();
+                    return;
+                }
+                
+                // Fetch new rates
+                const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/USD`);
+                currencyRates = response.data.rates;
+                lastCurrencyUpdate = now.toString();
+                
+                // Store in localStorage
+                localStorage.setItem('currencyRates', JSON.stringify(currencyRates));
+                localStorage.setItem('lastCurrencyUpdate', lastCurrencyUpdate);
+                
+                // Update UI
+                lastUpdatedSpan.textContent = new Date().toLocaleString();
+                
+                // If we're currently viewing currency, update the conversion
+                if (conversionTypeSelect.value === 'currency') {
+                    convert();
+                }
+            } catch (error) {
+                console.error('Error fetching currency rates:', error);
+                // If we have old rates, use them
+                if (storedRates) {
+                    currencyRates = JSON.parse(storedRates);
+                }
+            }
+        }
+
+        // Add conversion to history
+        function addToHistory(type, fromValue, fromUnit, toValue, toUnit) {
+            // Check if this exact conversion is already at the top of history
+            if (conversionHistory.length > 0) {
+                const last = conversionHistory[0];
+                if (last.type === type && last.fromUnit === fromUnit && last.toUnit === toUnit && 
+                    Math.abs(last.fromValue - fromValue) < 0.0001) {
+                    return; // Skip adding duplicate
+                }
+            }
+            
+            const conversion = {
+                type,
+                fromValue,
+                fromUnit,
+                toValue,
+                toUnit,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Add to beginning of array
+            conversionHistory.unshift(conversion);
+            
+            // Keep only last 10 conversions
+            if (conversionHistory.length > 10) {
+                conversionHistory = conversionHistory.slice(0, 10);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('conversionHistory', JSON.stringify(conversionHistory));
+            
+            // Update display
+            updateHistoryDisplay();
+        }
+
+        // Update history display
+        function updateHistoryDisplay() {
+            if (conversionHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-history text-2xl mb-2"></i>
+                        <p>Your conversions will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            historyList.innerHTML = '';
+            
+            conversionHistory.forEach(conv => {
+                const icon = conversionData[conv.type].icon;
+                const date = new Date(conv.timestamp);
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-gray-100 dark:bg-gray-700 rounded-lg p-3 flex items-center justify-between';
+                historyItem.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="${icon} mr-3 text-blue-500"></i>
+                        <div>
+                            <div class="font-medium">${conv.fromValue} ${conv.fromUnit} → ${conv.toValue.toFixed(4)} ${conv.toUnit}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">${conv.type.charAt(0).toUpperCase() + conv.type.slice(1)} • ${timeStr}</div>
+                        </div>
+                    </div>
+                    <button class="btn-transition text-blue-500 hover:text-blue-700 dark:hover:text-blue-400" onclick="copyResult(${conv.fromValue}, '${conv.fromUnit}', ${conv.toValue.toFixed(4)}, '${conv.toUnit}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                `;
+                
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Load popular conversions
+        function loadPopularConversions() {
+            popularConversionsContainer.innerHTML = '';
+            
+            popularConversions.forEach(popular => {
+                const typeData = conversionData[popular.type];
+                const icon = typeData.icon;
+                
+                const button = document.createElement('button');
+                button.className = 'btn-transition bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg p-3 flex flex-col items-center justify-center text-center';
+                button.innerHTML = `
+                    <i class="${icon} text-blue-500 mb-1"></i>
+                    <span class="text-sm font-medium">${popular.from} → ${popular.to}</span>
+                `;
+                
+                button.addEventListener('click', () => {
+                    // Set the conversion type
+                    conversionTypeSelect.value = popular.type;
+                    populateUnitSelects();
+                    
+                    // Set the units
+                    fromUnitSelect.value = popular.from;
+                    toUnitSelect.value = popular.to;
+                    
+                    // Convert
+                    convert();
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                popularConversionsContainer.appendChild(button);
+            });
+        }
+
+        // Copy result to clipboard
+        window.copyResult = function(fromValue, fromUnit, toValue, toUnit) {
+            const text = `${fromValue} ${fromUnit} = ${toValue} ${toUnit}`;
+            navigator.clipboard.writeText(text).then(() => {
+                // Show feedback
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg animate-fade-in';
+                toast.textContent = 'Copied to clipboard!';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            });
+        };
+
+        // Handle all anchor tags with JavaScript
+        document.querySelectorAll('a').forEach(anchor => {
+            anchor.addEventListener('click', e => {
+                e.preventDefault();
+                // In a real app, you would handle navigation here
+                console.log('Navigation prevented for:', anchor.href);
+            });
+        });
+    </script>
+</body>
+</html>
